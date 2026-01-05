@@ -1,0 +1,129 @@
+/**
+ * Phone Order Block - Frontend Styles
+ *
+ * @package OpenWPClub\PhoneOrder
+ */
+
+.wp-block-openwpclub-phone-order {
+	.woo-phone-order {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		background: #f9f9f9;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+		&__title {
+			margin-top: 0;
+			margin-bottom: 0.5rem;
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: #333;
+		}
+
+		&__subtitle {
+			margin: 0 0 0.5rem;
+			font-size: 1rem;
+			color: #666;
+		}
+
+		&__description {
+			margin: 0 0 1.5rem;
+			font-size: 0.9rem;
+			color: #777;
+			line-height: 1.5;
+		}
+
+		&__form {
+			margin: 0;
+		}
+
+		&__input-group {
+			display: flex;
+			gap: 0.75rem;
+			margin-bottom: 1rem;
+
+			@media (max-width: 600px) {
+				flex-direction: column;
+			}
+		}
+
+		&__phone-input {
+			flex: 1;
+			padding: 0.75rem 1rem;
+			font-size: 1rem;
+			border: 2px solid #ddd;
+			border-radius: 4px;
+			transition: border-color 0.2s;
+
+			&:focus {
+				outline: none;
+				border-color: #0073aa;
+			}
+
+			&:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
+			}
+		}
+
+		&__submit-button {
+			padding: 0.75rem 2rem;
+			font-size: 1rem;
+			font-weight: 600;
+			color: #fff;
+			background: #0073aa;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background 0.2s;
+			white-space: nowrap;
+
+			&:hover:not(:disabled) {
+				background: #005a87;
+			}
+
+			&:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
+			}
+
+			@media (max-width: 600px) {
+				width: 100%;
+			}
+		}
+
+		&__out-of-stock-notice {
+			padding: 0.75rem;
+			margin: 0 0 1rem;
+			background: #fff3cd;
+			border: 1px solid #ffc107;
+			border-radius: 4px;
+			color: #856404;
+			font-size: 0.9rem;
+		}
+
+		&__message {
+			padding: 1rem;
+			border-radius: 4px;
+			font-size: 0.95rem;
+			line-height: 1.5;
+
+			&.success {
+				background: #d4edda;
+				border: 1px solid #c3e6cb;
+				color: #155724;
+			}
+
+			&.error {
+				background: #f8d7da;
+				border: 1px solid #f5c6cb;
+				color: #721c24;
+			}
+		}
+
+		&--disabled {
+			opacity: 0.7;
+		}
+	}
+}

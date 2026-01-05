@@ -1,0 +1,33 @@
+/**
+ * Phone Order Block - Editor Styles
+ *
+ * @package OpenWPClub\PhoneOrder
+ */
+
+.wp-block-openwpclub-phone-order {
+	.phone-order-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		min-height: 200px;
+		padding: 2rem;
+		background: #f0f0f1;
+		border: 2px dashed #ddd;
+		border-radius: 8px;
+
+		svg {
+			width: 48px;
+			height: 48px;
+			margin-bottom: 1rem;
+			color: #757575;
+		}
+
+		p {
+			margin: 0;
+			color: #757575;
+			font-size: 0.9rem;
+			text-align: center;
+		}
+	}
+}

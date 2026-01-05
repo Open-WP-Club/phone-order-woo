@@ -5,9 +5,11 @@ This is a WordPress/WooCommerce plugin that enables quick order creation using j
 
 **Plugin Name:** Phone Order for WooCommerce
 **Plugin Slug:** `woo-phone-order`
-**Version:** 1.0.0
-**WooCommerce Compatibility:** 8.0+
-**WordPress Compatibility:** 6.0+
+**Version:** 2.0.0
+**WooCommerce Compatibility:** 9.0+
+**WordPress Compatibility:** 6.9+
+**PHP Version:** 8.0+
+**Architecture:** Modern PSR-4, Namespaces, Interactivity API, Gutenberg Blocks
 
 ## Claude Code Permissions
 
@@ -32,27 +34,68 @@ This is a WordPress/WooCommerce plugin that enables quick order creation using j
 
 ## Architecture
 
-### File Structure
+### File Structure (Modern PSR-4 Architecture)
 ```
 woo-phone-order/
-├── woo-phone-order.php          # Main plugin file (header, initialization)
-├── includes/
-│   ├── settings.php             # Settings management & defaults
-│   ├── settings-page.php        # WooCommerce settings tab integration
-│   ├── form-renderer.php        # Form display logic & shortcode
-│   └── ajax-handler.php         # AJAX request handling & order creation
+├── woo-phone-order.php              # Bootstrap file (autoloader, initialization)
+├── composer.json                    # PHP dependencies & PSR-4 autoloading
+├── package.json                     # JavaScript dependencies & build scripts
+├── .gitignore                       # Git ignore rules
+│
+├── src/                             # Modern PHP source (PSR-4 namespaced)
+│   ├── Plugin.php                   # Main plugin class (singleton)
+│   ├── Admin/
+│   │   ├── Dashboard.php            # Admin dashboard page
+│   │   └── Analytics.php            # Analytics & statistics
+│   ├── Frontend/
+│   │   ├── FormRenderer.php         # Form rendering & shortcode
+│   │   └── AjaxHandler.php          # AJAX handling & order creation
+│   ├── Settings/
+│   │   └── Settings.php             # Settings management
+│   ├── Blocks/
+│   │   └── PhoneOrderBlock.php      # Gutenberg block registration
+│   └── API/
+│       └── AbilitiesAPI.php         # WordPress 6.9 Abilities API
+│
+├── src-js/                          # JavaScript source files
+│   └── blocks/
+│       └── phone-order/
+│           ├── index.js             # Block editor (Gutenberg)
+│           ├── view.js              # Interactivity API (frontend)
+│           ├── block.json           # Block metadata
+│           ├── style.scss           # Frontend styles
+│           └── editor.scss          # Editor styles
+│
+├── build/                           # Compiled JavaScript (webpack output)
+│   └── phone-order-block/           # Block assets
+│
+├── templates/
+│   └── phone-order-form.php         # Form template (overridable)
+│
 ├── assets/
-│   ├── css/wc-phone-order.css  # Styles (BEM methodology)
-│   └── js/wc-phone-order.js    # JavaScript functionality
-└── README.md                    # Plugin documentation
+│   ├── css/
+│   │   ├── wc-phone-order.css       # Legacy frontend styles
+│   │   └── admin.css                # Admin dashboard styles
+│   └── js/
+│       ├── wc-phone-order.js        # Legacy frontend JS (deprecated)
+│       └── admin.js                 # Admin dashboard JS
+│
+├── vendor/                          # Composer dependencies (gitignored)
+├── node_modules/                    # NPM dependencies (gitignored)
+└── languages/                       # Translation files
 ```
 
-### Key Features
+### Key Features (v2.0)
 - **Phone-based customer lookup**: Searches existing customers by phone number
 - **Guest customer creation**: Auto-creates accounts for new phone numbers
 - **HPOS compatible**: Uses High Performance Order Storage
 - **Stock validation**: Real-time inventory checking
-- **Flexible placement**: Works on product pages + shortcode `[woo_phone_order]`
+- **Gutenberg Block**: Native block editor support with live preview
+- **Interactivity API**: Modern reactive frontend (WordPress 6.5+) without jQuery
+- **Admin Dashboard**: Analytics, statistics, and order management
+- **Abilities API**: AI agent integration (WordPress 6.9+)
+- **Flexible placement**: Shortcode `[woo_phone_order]` + Gutenberg block + product page hooks
+- **Modern PHP**: PHP 8.0+, namespaces, PSR-4 autoloading, type hints
 
 ### Technical Details
 
@@ -181,15 +224,44 @@ if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 ## Common Commands
 
 ### Development
-```bash
-# Watch for file changes during development
-npm run watch  # (if build process exists)
 
+**Install Dependencies:**
+```bash
+# Install PHP dependencies (required)
+composer install
+
+# Install JavaScript dependencies (required)
+npm install
+```
+
+**Build Assets:**
+```bash
+# Build for production
+npm run build
+
+# Watch for changes during development
+npm run start
+
+# Format code
+npm run format
+```
+
+**Code Quality:**
+```bash
 # Run WordPress coding standards check
-phpcs --standard=WordPress .
+composer phpcs
 
 # Fix auto-fixable coding standards
-phpcbf --standard=WordPress .
+composer phpcbf
+
+# Run PHPStan static analysis
+composer phpstan
+
+# Lint JavaScript
+npm run lint:js
+
+# Lint CSS
+npm run lint:css
 ```
 
 ### Git Workflow

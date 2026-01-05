@@ -1,0 +1,56 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "openwpclub/phone-order",
+	"version": "2.0.0",
+	"title": "Phone Order",
+	"category": "woocommerce",
+	"icon": "phone",
+	"description": "Enable customers to order products with just their phone number",
+	"keywords": ["phone", "order", "woocommerce", "quick", "contact"],
+	"supports": {
+		"html": false,
+		"align": true,
+		"color": {
+			"background": true,
+			"text": true,
+			"gradients": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"interactivity": true
+	},
+	"attributes": {
+		"productId": {
+			"type": "number",
+			"default": 0
+		},
+		"showTitle": {
+			"type": "boolean",
+			"default": true
+		},
+		"showDescription": {
+			"type": "boolean",
+			"default": true
+		},
+		"customTitle": {
+			"type": "string",
+			"default": ""
+		},
+		"customButtonText": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"textdomain": "woocommerce-phone-order",
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style.css",
+	"editorStyle": "file:./editor.css"
+}
