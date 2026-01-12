@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 namespace OpenWPClub\PhoneOrder\Admin;
 
+use Automattic\WooCommerce\Utilities\OrderUtil;
+
 /**
- * Analytics Class
+ * Analytics Class - HPOS Compatible
  */
 final class Analytics {
 	/**
@@ -20,6 +22,20 @@ final class Analytics {
 	 * @var Analytics|null
 	 */
 	private static ?Analytics $instance = null;
+
+	/**
+	 * Cache group
+	 *
+	 * @var string
+	 */
+	private const CACHE_GROUP = 'wc_phone_order_analytics';
+
+	/**
+	 * Cache expiration in seconds
+	 *
+	 * @var int
+	 */
+	private const CACHE_EXPIRATION = 300; // 5 minutes
 
 	/**
 	 * Get instance
@@ -37,7 +53,26 @@ final class Analytics {
 	 * Constructor
 	 */
 	private function __construct() {
-		// Initialize analytics
+		add_action( 'woocommerce_order_status_changed', [ $this, 'clear_cache' ] );
+		add_action( 'wc_phone_order_created', [ $this, 'clear_cache' ] );
+	}
+
+	/**
+	 * Clear analytics cache
+	 *
+	 * @return void
+	 */
+	public function clear_cache(): void {
+		wp_cache_delete( 'dashboard_stats', self::CACHE_GROUP );
+	}
+
+	/**
+	 * Check if HPOS is enabled
+	 *
+	 * @return bool
+	 */
+	private function is_hpos_enabled(): bool {
+		return class_exists( OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled();
 	}
 
 	/**
@@ -46,7 +81,13 @@ final class Analytics {
 	 * @return array<string, mixed>
 	 */
 	public function get_dashboard_stats(): array {
-		return [
+		$cached = wp_cache_get( 'dashboard_stats', self::CACHE_GROUP );
+
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		$stats = [
 			'total_orders'   => $this->get_total_orders(),
 			'today_orders'   => $this->get_today_orders(),
 			'month_orders'   => $this->get_month_orders(),
@@ -54,21 +95,25 @@ final class Analytics {
 			'recent_orders'  => $this->get_recent_orders(),
 			'top_products'   => $this->get_top_products(),
 		];
+
+		wp_cache_set( 'dashboard_stats', $stats, self::CACHE_GROUP, self::CACHE_EXPIRATION );
+
+		return $stats;
 	}
 
 	/**
-	 * Get total phone orders count
+	 * Get total phone orders count - uses paginate for efficiency
 	 *
 	 * @return int
 	 */
 	private function get_total_orders(): int {
-		$orders = wc_get_orders( [
-			'limit'        => -1,
-			'created_via'  => 'phone_order',
-			'return'       => 'ids',
+		$result = wc_get_orders( [
+			'created_via' => 'phone_order',
+			'paginate'    => true,
+			'limit'       => 1,
 		] );
 
-		return count( $orders );
+		return $result->total;
 	}
 
 	/**
@@ -77,14 +122,14 @@ final class Analytics {
 	 * @return int
 	 */
 	private function get_today_orders(): int {
-		$orders = wc_get_orders( [
-			'limit'        => -1,
+		$result = wc_get_orders( [
 			'created_via'  => 'phone_order',
-			'date_created' => '>=' . strtotime( 'today' ),
-			'return'       => 'ids',
+			'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'today' ) ),
+			'paginate'     => true,
+			'limit'        => 1,
 		] );
 
-		return count( $orders );
+		return $result->total;
 	}
 
 	/**
@@ -93,133 +138,123 @@ final class Analytics {
 	 * @return int
 	 */
 	private function get_month_orders(): int {
-		$orders = wc_get_orders( [
-			'limit'        => -1,
+		$result = wc_get_orders( [
 			'created_via'  => 'phone_order',
-			'date_created' => '>=' . strtotime( 'first day of this month' ),
-			'return'       => 'ids',
+			'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'first day of this month' ) ),
+			'paginate'     => true,
+			'limit'        => 1,
 		] );
 
-		return count( $orders );
+		return $result->total;
 	}
 
 	/**
-	 * Get total revenue from phone orders
+	 * Get total revenue from phone orders - HPOS compatible
 	 *
 	 * @return float
 	 */
 	private function get_total_revenue(): float {
-		global $wpdb;
+		$orders = wc_get_orders( [
+			'created_via' => 'phone_order',
+			'status'      => [ 'wc-completed', 'wc-processing' ],
+			'limit'       => -1,
+			'return'      => 'objects',
+		] );
 
-		$result = $wpdb->get_var(
-			"SELECT SUM(om.meta_value)
-			FROM {$wpdb->prefix}posts p
-			INNER JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id
-			INNER JOIN {$wpdb->prefix}postmeta om ON p.ID = om.post_id
-			WHERE p.post_type = 'shop_order'
-			AND pm.meta_key = '_created_via'
-			AND pm.meta_value = 'phone_order'
-			AND om.meta_key = '_order_total'
-			AND p.post_status IN ('wc-completed', 'wc-processing')"
-		);
+		$total = 0.0;
+		foreach ( $orders as $order ) {
+			$total += (float) $order->get_total();
+		}
 
-		return $result ? (float) $result : 0.0;
+		return $total;
 	}
 
 	/**
-	 * Get recent phone orders
+	 * Get recent phone orders - HPOS compatible
 	 *
 	 * @param int $limit Number of orders to retrieve.
-	 * @return array<int, object>
+	 * @return array<int, \WC_Order>
 	 */
 	public function get_recent_orders( int $limit = 10 ): array {
-		global $wpdb;
-
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT p.ID as order_id, p.post_date
-				FROM {$wpdb->prefix}posts p
-				INNER JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id
-				WHERE p.post_type = 'shop_order'
-				AND pm.meta_key = '_created_via'
-				AND pm.meta_value = 'phone_order'
-				ORDER BY p.post_date DESC
-				LIMIT %d",
-				$limit
-			)
-		);
-
-		return $results ?: [];
+		return wc_get_orders( [
+			'created_via' => 'phone_order',
+			'limit'       => $limit,
+			'orderby'     => 'date',
+			'order'       => 'DESC',
+		] );
 	}
 
 	/**
-	 * Get top products from phone orders
+	 * Get top products from phone orders - HPOS compatible
 	 *
 	 * @param int $limit Number of products to retrieve.
-	 * @return array<int, object>
+	 * @return array<int, array{product_id: int, order_count: int, revenue: float}>
 	 */
 	public function get_top_products( int $limit = 5 ): array {
-		global $wpdb;
+		$orders = wc_get_orders( [
+			'created_via' => 'phone_order',
+			'status'      => [ 'wc-completed', 'wc-processing' ],
+			'limit'       => -1,
+			'return'      => 'objects',
+		] );
 
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT
-					oim.meta_value as product_id,
-					COUNT(DISTINCT oi.order_id) as order_count,
-					SUM(om.meta_value) as revenue
-				FROM {$wpdb->prefix}woocommerce_order_items oi
-				INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oi.order_item_id = oim.order_item_id
-				INNER JOIN {$wpdb->prefix}posts p ON oi.order_id = p.ID
-				INNER JOIN {$wpdb->prefix}postmeta pm ON p.ID = pm.post_id
-				INNER JOIN {$wpdb->prefix}postmeta om ON p.ID = om.post_id
-				WHERE oi.order_item_type = 'line_item'
-				AND oim.meta_key = '_product_id'
-				AND pm.meta_key = '_created_via'
-				AND pm.meta_value = 'phone_order'
-				AND om.meta_key = '_order_total'
-				AND p.post_status IN ('wc-completed', 'wc-processing')
-				GROUP BY product_id
-				ORDER BY order_count DESC, revenue DESC
-				LIMIT %d",
-				$limit
-			)
-		);
+		$product_stats = [];
 
-		return $results ?: [];
+		foreach ( $orders as $order ) {
+			foreach ( $order->get_items() as $item ) {
+				$product_id = $item->get_product_id();
+
+				if ( ! isset( $product_stats[ $product_id ] ) ) {
+					$product_stats[ $product_id ] = [
+						'product_id'  => $product_id,
+						'order_count' => 0,
+						'revenue'     => 0.0,
+					];
+				}
+
+				$product_stats[ $product_id ]['order_count']++;
+				$product_stats[ $product_id ]['revenue'] += (float) $item->get_total();
+			}
+		}
+
+		// Sort by order count descending
+		usort( $product_stats, function ( $a, $b ) {
+			return $b['order_count'] <=> $a['order_count'];
+		} );
+
+		return array_slice( $product_stats, 0, $limit );
 	}
 
 	/**
-	 * Get phone orders by date range
+	 * Get phone orders by date range - HPOS compatible
 	 *
 	 * @param string $start_date Start date (Y-m-d format).
 	 * @param string $end_date End date (Y-m-d format).
-	 * @return array<int, object>
+	 * @return array<int, \WC_Order>
 	 */
 	public function get_orders_by_date_range( string $start_date, string $end_date ): array {
-		$orders = wc_get_orders( [
+		return wc_get_orders( [
 			'limit'        => -1,
 			'created_via'  => 'phone_order',
 			'date_created' => $start_date . '...' . $end_date,
 			'return'       => 'objects',
 		] );
-
-		return $orders;
 	}
 
 	/**
-	 * Get conversion rate (phone orders / total orders)
+	 * Get conversion rate (phone orders / total orders) - optimized
 	 *
 	 * @return float Percentage
 	 */
 	public function get_conversion_rate(): float {
 		$phone_orders = $this->get_total_orders();
 
-		$total_orders = wc_get_orders( [
-			'limit'  => -1,
-			'return' => 'ids',
+		$result = wc_get_orders( [
+			'paginate' => true,
+			'limit'    => 1,
 		] );
 
-		$total = count( $total_orders );
+		$total = $result->total;
 
 		if ( 0 === $total ) {
 			return 0.0;
@@ -246,19 +281,27 @@ final class Analytics {
 	}
 
 	/**
-	 * Export analytics data to CSV
+	 * Export analytics data to CSV - improved with proper file handling
 	 *
 	 * @param string $start_date Start date.
 	 * @param string $end_date End date.
-	 * @return string CSV file path.
+	 * @return string CSV file path or empty string on failure.
 	 */
 	public function export_to_csv( string $start_date, string $end_date ): string {
 		$orders = $this->get_orders_by_date_range( $start_date, $end_date );
 
-		$filename = 'phone-orders-' . $start_date . '-to-' . $end_date . '.csv';
-		$filepath = wp_upload_dir()['basedir'] . '/' . $filename;
+		$upload_dir = wp_upload_dir();
+		$filename   = 'phone-orders-' . $start_date . '-to-' . $end_date . '.csv';
+		$filepath   = $upload_dir['basedir'] . '/wc-phone-orders/' . $filename;
 
-		$fp = fopen( $filepath, 'w' );
+		// Create directory if it doesn't exist
+		wp_mkdir_p( dirname( $filepath ) );
+
+		$fp = fopen( $filepath, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+
+		if ( false === $fp ) {
+			return '';
+		}
 
 		// CSV Headers
 		fputcsv( $fp, [
@@ -272,15 +315,18 @@ final class Analytics {
 
 		// CSV Data
 		foreach ( $orders as $order ) {
-			$items = $order->get_items();
+			$items         = $order->get_items();
 			$product_names = [];
+
 			foreach ( $items as $item ) {
 				$product_names[] = $item->get_name();
 			}
 
+			$date_created = $order->get_date_created();
+
 			fputcsv( $fp, [
 				$order->get_id(),
-				$order->get_date_created()->date( 'Y-m-d H:i:s' ),
+				$date_created ? $date_created->date( 'Y-m-d H:i:s' ) : '',
 				$order->get_billing_phone(),
 				implode( ', ', $product_names ),
 				$order->get_total(),
@@ -288,7 +334,7 @@ final class Analytics {
 			] );
 		}
 
-		fclose( $fp );
+		fclose( $fp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
 
 		return $filepath;
 	}

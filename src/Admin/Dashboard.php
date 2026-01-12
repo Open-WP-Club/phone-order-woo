@@ -407,12 +407,12 @@ final class Dashboard {
 	/**
 	 * Render orders table
 	 *
-	 * @param array<int, object> $orders Recent orders.
+	 * @param array<int, \WC_Order> $orders Recent orders.
 	 * @return void
 	 */
 	private function render_orders_table( array $orders ): void {
 		if ( empty( $orders ) ) {
-			echo '<p>' . esc_html__( 'No phone orders yet.', 'woocommerce-phone-order' ) . '</p>';
+			echo '<p class="wc-phone-order-empty-state">' . esc_html__( 'No phone orders yet.', 'woocommerce-phone-order' ) . '</p>';
 			return;
 		}
 
@@ -429,17 +429,19 @@ final class Dashboard {
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ( $orders as $order_data ) : ?>
+				<?php foreach ( $orders as $order ) : ?>
 					<?php
-					$order = wc_get_order( $order_data->order_id );
-					if ( ! $order ) {
+					if ( ! $order instanceof \WC_Order ) {
 						continue;
 					}
+
+					$date_created = $order->get_date_created();
 					?>
 					<tr>
 						<td>
-							<a href="<?php echo esc_url( admin_url( 'post.php?post=' . $order->get_id() . '&action=edit' ) ); ?>">
 								#<?php echo esc_html( $order->get_id() ); ?>
+							<a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>">
+								#<?php echo esc_html( $order->get_order_number() ); ?>
 							</a>
 						</td>
 						<td><?php echo esc_html( $order->get_billing_phone() ); ?></td>
@@ -453,8 +455,12 @@ final class Dashboard {
 							?>
 						</td>
 						<td><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></td>
-						<td><?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?></td>
-						<td><?php echo esc_html( $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) ); ?></td>
+						<td>
+							<span class="wc-phone-order-status wc-phone-order-status--<?php echo esc_attr( $order->get_status() ); ?>">
+								<?php echo esc_html( wc_get_order_status_name( $order->get_status() ) ); ?>
+							</span>
+						</td>
+						<td><?php echo $date_created ? esc_html( $date_created->date_i18n( get_option( 'date_format' ) ) ) : '—'; ?></td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>
@@ -465,12 +471,12 @@ final class Dashboard {
 	/**
 	 * Render top products
 	 *
-	 * @param array<int, object> $products Top products.
+	 * @param array<int, array{product_id: int, order_count: int, revenue: float}> $products Top products.
 	 * @return void
 	 */
 	private function render_top_products( array $products ): void {
 		if ( empty( $products ) ) {
-			echo '<p>' . esc_html__( 'No product data available.', 'woocommerce-phone-order' ) . '</p>';
+			echo '<p class="wc-phone-order-empty-state">' . esc_html__( 'No product data available.', 'woocommerce-phone-order' ) . '</p>';
 			return;
 		}
 
@@ -486,19 +492,21 @@ final class Dashboard {
 			<tbody>
 				<?php foreach ( $products as $product_data ) : ?>
 					<?php
-					$product = wc_get_product( $product_data->product_id );
+					$product_id = $product_data['product_id'] ?? 0;
+					$product    = wc_get_product( $product_id );
+
 					if ( ! $product ) {
 						continue;
 					}
 					?>
 					<tr>
 						<td>
-							<a href="<?php echo esc_url( admin_url( 'post.php?post=' . $product->get_id() . '&action=edit' ) ); ?>">
+							<a href="<?php echo esc_url( get_edit_post_link( $product->get_id() ) ); ?>">
 								<?php echo esc_html( $product->get_name() ); ?>
 							</a>
 						</td>
-						<td><?php echo esc_html( number_format_i18n( $product_data->order_count ) ); ?></td>
-						<td><?php echo wp_kses_post( wc_price( $product_data->revenue ) ); ?></td>
+						<td><?php echo esc_html( number_format_i18n( $product_data['order_count'] ?? 0 ) ); ?></td>
+						<td><?php echo wp_kses_post( wc_price( $product_data['revenue'] ?? 0 ) ); ?></td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>
