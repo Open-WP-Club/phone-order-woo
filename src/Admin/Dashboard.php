@@ -439,7 +439,6 @@ final class Dashboard {
 					?>
 					<tr>
 						<td>
-								#<?php echo esc_html( $order->get_id() ); ?>
 							<a href="<?php echo esc_url( $order->get_edit_order_url() ); ?>">
 								#<?php echo esc_html( $order->get_order_number() ); ?>
 							</a>
