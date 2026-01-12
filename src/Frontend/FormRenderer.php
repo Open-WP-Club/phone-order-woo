@@ -167,34 +167,42 @@ final class FormRenderer {
 			return;
 		}
 
+		$plugin_url = Plugin::get_instance()->get_plugin_url();
+
 		// Enqueue styles
 		wp_enqueue_style(
 			'wc-phone-order',
-			Plugin::get_instance()->get_plugin_url() . 'assets/css/wc-phone-order.css',
+			$plugin_url . 'assets/css/wc-phone-order.css',
 			[],
 			Plugin::VERSION
 		);
 
-		// Enqueue interactivity API script
-		wp_enqueue_script_module( '@wordpress/interactivity' );
+		// Enqueue block styles
+		wp_enqueue_style(
+			'wc-phone-order-block',
+			$plugin_url . 'build/phone-order-block/style-index.css',
+			[],
+			Plugin::VERSION
+		);
 
-		// Enqueue our script
+		// Enqueue simple vanilla JS script (no Interactivity API)
 		wp_enqueue_script(
-			'wc-phone-order',
-			Plugin::get_instance()->get_plugin_url() . 'build/phone-order.js',
-			[ '@wordpress/interactivity' ],
+			'wc-phone-order-frontend',
+			$plugin_url . 'assets/js/phone-order-frontend.js',
+			[],
 			Plugin::VERSION,
 			true
 		);
 
-		// Localize script
-		wp_localize_script( 'wc-phone-order', 'wooPhoneOrderParams', [
+		// Localize script with params
+		wp_localize_script( 'wc-phone-order-frontend', 'wooPhoneOrderParams', [
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'wc-phone-order-nonce' ),
 			'i18n'    => [
 				'submitting' => __( 'Submitting...', 'woocommerce-phone-order' ),
 				'success'    => __( 'Order placed successfully!', 'woocommerce-phone-order' ),
 				'error'      => __( 'An error occurred', 'woocommerce-phone-order' ),
+				'emptyPhone' => __( 'Please enter your phone number', 'woocommerce-phone-order' ),
 			],
 		] );
 	}

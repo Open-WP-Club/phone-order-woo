@@ -5,16 +5,51 @@
  * @since 2.0.0
  */
 
+/* =====================================================
+   Layout
+   ===================================================== */
 .wc-phone-order-dashboard {
-	max-width: 1200px;
-	margin: 20px 0;
+	margin: 20px 20px 20px 0;
 }
 
+.wc-phone-order-dashboard h1 {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+/* =====================================================
+   Tabs Navigation
+   ===================================================== */
+.wc-phone-order-tabs {
+	margin: 20px 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.wc-phone-order-tabs .nav-tab {
+	padding: 10px 20px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.wc-phone-order-tabs .nav-tab-active {
+	background: #fff;
+	border-bottom-color: #fff;
+}
+
+.wc-phone-order-tab-content {
+	margin-top: 25px;
+}
+
+/* =====================================================
+   Stats Grid
+   ===================================================== */
 .wc-phone-order-stats-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	grid-template-columns: repeat(4, 1fr);
 	gap: 20px;
-	margin: 30px 0;
+	margin-bottom: 30px;
 }
 
 .wc-phone-order-stat-card {
@@ -23,16 +58,40 @@
 	border: 1px solid #dcdcde;
 	border-radius: 8px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-	transition: box-shadow 0.2s;
+	transition: all 0.2s ease;
+	position: relative;
+	overflow: hidden;
+}
+
+.wc-phone-order-stat-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 4px;
+	height: 100%;
+	background: #7c3aed;
+	opacity: 0;
+	transition: opacity 0.2s;
 }
 
 .wc-phone-order-stat-card:hover {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	transform: translateY(-2px);
 }
+
+.wc-phone-order-stat-card:hover::before {
+	opacity: 1;
+}
+
+.wc-phone-order-stat-card:nth-child(1)::before { background: #7c3aed; }
+.wc-phone-order-stat-card:nth-child(2)::before { background: #2563eb; }
+.wc-phone-order-stat-card:nth-child(3)::before { background: #059669; }
+.wc-phone-order-stat-card:nth-child(4)::before { background: #d97706; }
 
 .wc-phone-order-stat-card h3 {
 	margin: 0 0 12px;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
 	color: #646970;
 	text-transform: uppercase;
@@ -41,40 +100,308 @@
 
 .wc-phone-order-stat-card .stat-number {
 	margin: 0;
-	font-size: 32px;
+	font-size: 36px;
 	font-weight: 700;
 	color: #1d2327;
 	line-height: 1.2;
 }
 
+/* =====================================================
+   Content Panels
+   ===================================================== */
+.wc-phone-order-panels {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 24px;
+}
+
 .wc-phone-order-recent-orders,
 .wc-phone-order-top-products {
-	margin: 40px 0;
+	background: #fff;
+	padding: 24px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	margin-bottom: 24px;
+}
+
+.wc-phone-order-recent-orders h2,
+.wc-phone-order-top-products h2 {
+	margin: 0 0 20px;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2327;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+/* =====================================================
+   Tables
+   ===================================================== */
+.wc-phone-order-dashboard .wp-list-table {
+	margin-top: 0;
+	border: none;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.wc-phone-order-dashboard .wp-list-table thead th {
+	background: #f6f7f7;
+	font-weight: 600;
+	font-size: 13px;
+	color: #1d2327;
+	padding: 12px 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.wc-phone-order-dashboard .wp-list-table tbody td {
+	padding: 14px 16px;
+	vertical-align: middle;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.wc-phone-order-dashboard .wp-list-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.wc-phone-order-dashboard .wp-list-table tbody tr:hover {
+	background: #f9fafb;
+}
+
+.wc-phone-order-dashboard .wp-list-table a {
+	color: #2271b1;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.wc-phone-order-dashboard .wp-list-table a:hover {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+/* =====================================================
+   Settings Tab
+   ===================================================== */
+.wc-phone-order-settings {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 30px;
+	margin-top: 20px;
+}
+
+.wc-phone-order-settings-form {
+	background: #fff;
+	padding: 30px;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+}
+
+.wc-phone-order-settings-form h3 {
+	margin: 0 0 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.wc-phone-order-settings .form-table {
+	margin: 0;
+}
+
+.wc-phone-order-settings .form-table th {
+	padding: 16px 0;
+	width: 220px;
+	font-weight: 500;
+	vertical-align: top;
+}
+
+.wc-phone-order-settings .form-table td {
+	padding: 16px 0;
+}
+
+.wc-phone-order-settings .form-table input[type="text"],
+.wc-phone-order-settings .form-table textarea,
+.wc-phone-order-settings .form-table select {
+	width: 100%;
+	max-width: 400px;
+}
+
+.wc-phone-order-settings .form-table textarea {
+	min-height: 80px;
+}
+
+.wc-phone-order-settings .description {
+	color: #646970;
+	font-size: 13px;
+	margin-top: 6px;
+	font-style: normal;
+}
+
+.wc-phone-order-settings .submit {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.wc-phone-order-settings .button-primary {
+	padding: 8px 24px;
+	height: auto;
+	font-size: 14px;
+}
+
+/* Settings Sidebar */
+.wc-phone-order-settings-sidebar {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.wc-phone-order-shortcode-info,
+.wc-phone-order-help-box {
 	background: #fff;
 	padding: 24px;
 	border: 1px solid #dcdcde;
 	border-radius: 8px;
 }
 
-.wc-phone-order-recent-orders h2,
-.wc-phone-order-top-products h2 {
-	margin: 0 0 20px;
-	font-size: 20px;
+.wc-phone-order-shortcode-info h3,
+.wc-phone-order-help-box h3 {
+	margin: 0 0 16px;
+	font-size: 15px;
 	font-weight: 600;
 	color: #1d2327;
 }
 
-.wp-list-table {
-	margin-top: 16px;
+.wc-phone-order-shortcode-info p {
+	margin: 0 0 8px;
+	color: #646970;
+	font-size: 13px;
 }
 
-/* Responsive */
+.wc-phone-order-shortcode-info code {
+	display: block;
+	background: #f6f7f7;
+	padding: 12px 16px;
+	border-radius: 6px;
+	font-size: 13px;
+	margin: 12px 0;
+	border: 1px solid #dcdcde;
+	font-family: Consolas, Monaco, monospace;
+}
+
+/* =====================================================
+   Empty States
+   ===================================================== */
+.wc-phone-order-empty-state {
+	text-align: center;
+	padding: 40px 20px;
+	color: #646970;
+}
+
+.wc-phone-order-empty-state p {
+	margin: 0;
+	font-size: 14px;
+}
+
+/* =====================================================
+   Status Badges
+   ===================================================== */
+.wc-phone-order-status {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+	text-transform: capitalize;
+}
+
+.wc-phone-order-status--processing {
+	background: #e0f2fe;
+	color: #0369a1;
+}
+
+.wc-phone-order-status--completed {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.wc-phone-order-status--pending {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+.wc-phone-order-status--cancelled {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+/* =====================================================
+   Notices
+   ===================================================== */
+.wc-phone-order-dashboard .notice {
+	margin: 0 0 20px;
+}
+
+/* =====================================================
+   Responsive Design
+   ===================================================== */
+@media (max-width: 1200px) {
+	.wc-phone-order-stats-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.wc-phone-order-panels {
+		grid-template-columns: 1fr;
+	}
+
+	.wc-phone-order-settings {
+		grid-template-columns: 1fr;
+	}
+}
+
 @media (max-width: 782px) {
+	.wc-phone-order-dashboard {
+		margin-right: 10px;
+	}
+
 	.wc-phone-order-stats-grid {
 		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+
+	.wc-phone-order-stat-card {
+		padding: 20px;
 	}
 
 	.wc-phone-order-stat-card .stat-number {
 		font-size: 28px;
+	}
+
+	.wc-phone-order-settings .form-table th,
+	.wc-phone-order-settings .form-table td {
+		display: block;
+		width: 100%;
+		padding: 8px 0;
+	}
+
+	.wc-phone-order-settings .form-table th {
+		padding-bottom: 4px;
+	}
+
+	.wc-phone-order-settings .form-table input[type="text"],
+	.wc-phone-order-settings .form-table textarea,
+	.wc-phone-order-settings .form-table select {
+		max-width: 100%;
+	}
+
+	.wc-phone-order-tabs .nav-tab {
+		padding: 8px 12px;
+		font-size: 13px;
+	}
+
+	.wc-phone-order-recent-orders,
+	.wc-phone-order-top-products,
+	.wc-phone-order-settings-form,
+	.wc-phone-order-shortcode-info {
+		padding: 16px;
 	}
 }

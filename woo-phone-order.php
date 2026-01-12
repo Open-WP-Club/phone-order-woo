@@ -88,3 +88,14 @@ register_deactivation_hook( __FILE__, function () {
 	// Flush rewrite rules
 	flush_rewrite_rules();
 } );
+
+// Add plugin action links
+add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), function ( $links ) {
+	$settings_link = sprintf(
+		'<a href="%s">%s</a>',
+		admin_url( 'admin.php?page=wc-phone-orders&tab=settings' ),
+		__( 'Settings', 'woocommerce-phone-order' )
+	);
+	array_unshift( $links, $settings_link );
+	return $links;
+} );

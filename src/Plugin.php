@@ -81,11 +81,15 @@ final class Plugin {
 	/**
 	 * Get plugin instance
 	 *
-	 * @param string $plugin_file Main plugin file path.
+	 * @param string $plugin_file Main plugin file path (required on first call).
 	 * @return Plugin
+	 * @throws \RuntimeException If called before initialization.
 	 */
-	public static function get_instance( string $plugin_file ): Plugin {
+	public static function get_instance( string $plugin_file = '' ): Plugin {
 		if ( null === self::$instance ) {
+			if ( empty( $plugin_file ) ) {
+				throw new \RuntimeException( 'Plugin must be initialized with plugin file path first.' );
+			}
 			self::$instance = new self( $plugin_file );
 		}
 		return self::$instance;
@@ -110,7 +114,8 @@ final class Plugin {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'plugins_loaded', [ $this, 'init_plugin' ], 10 );
+		// Since we're already on plugins_loaded, use init hook instead.
+		add_action( 'init', [ $this, 'init_plugin' ], 0 );
 		add_action( 'before_woocommerce_init', [ $this, 'declare_hpos_compatibility' ] );
 	}
 

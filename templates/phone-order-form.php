@@ -22,7 +22,7 @@
 defined( 'ABSPATH' ) || exit;
 
 ?>
-<div class="<?php echo esc_attr( $form_class ); ?>" data-wp-interactive="phone-order">
+<div class="<?php echo esc_attr( $form_class ); ?>">
 	<?php if ( $form_title ) : ?>
 		<h3 class="woo-phone-order__title"><?php echo esc_html( $form_title ); ?></h3>
 	<?php endif; ?>
@@ -35,12 +35,11 @@ defined( 'ABSPATH' ) || exit;
 		<p class="woo-phone-order__description"><?php echo esc_html( $form_description ); ?></p>
 	<?php endif; ?>
 
-	<form
+	<div
 		id="woo-phone-order-form"
 		class="woo-phone-order__form"
 		data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
-		<?php echo $form_disabled ? 'data-disabled="true"' : ''; ?>
-		data-wp-context='{"isSubmitting": false, "message": "", "messageType": ""}'>
+		<?php echo $form_disabled ? 'data-disabled="true"' : ''; ?>>
 
 		<div class="woo-phone-order__input-group">
 			<input
@@ -48,24 +47,15 @@ defined( 'ABSPATH' ) || exit;
 				name="phone"
 				class="woo-phone-order__phone-input"
 				autocomplete="tel"
-				required
 				placeholder="<?php esc_attr_e( 'Your phone number', 'woocommerce-phone-order' ); ?>"
 				<?php echo $form_disabled ? 'disabled' : ''; ?>
-				data-wp-bind--disabled="context.isSubmitting"
 				aria-label="<?php esc_attr_e( 'Phone number', 'woocommerce-phone-order' ); ?>">
 
 			<button
-				type="submit"
+				type="button"
 				class="woo-phone-order__submit-button"
-				<?php echo $form_disabled ? 'disabled' : ''; ?>
-				data-wp-bind--disabled="context.isSubmitting"
-				data-wp-on--click="actions.submitForm">
-				<span data-wp-show="!context.isSubmitting">
-					<?php echo esc_html( $button_text ); ?>
-				</span>
-				<span data-wp-show="context.isSubmitting">
-					<?php esc_html_e( 'Submitting...', 'woocommerce-phone-order' ); ?>
-				</span>
+				<?php echo $form_disabled ? 'disabled' : ''; ?>>
+				<?php echo esc_html( $button_text ); ?>
 			</button>
 		</div>
 
@@ -77,12 +67,9 @@ defined( 'ABSPATH' ) || exit;
 
 		<div
 			class="woo-phone-order__message"
-			data-wp-show="context.message"
-			data-wp-class--success="context.messageType === 'success'"
-			data-wp-class--error="context.messageType === 'error'"
+			style="display: none;"
 			role="alert"
 			aria-live="polite">
-			<span data-wp-text="context.message"></span>
 		</div>
-	</form>
+	</div>
 </div>

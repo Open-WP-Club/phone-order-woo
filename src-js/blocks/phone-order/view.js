@@ -18,11 +18,13 @@ const { state } = store('phone-order', {
 	actions: {
 		*submitForm(event) {
 			event.preventDefault();
+			event.stopPropagation(); // Prevent event from bubbling to parent forms
 
 			const context = getContext();
-			const form = event.target.closest('form');
-			const phoneInput = form.querySelector('input[name="phone"]');
-			const productId = form.dataset.productId;
+			// Support both form and div containers
+			const container = event.target.closest('#woo-phone-order-form') || event.target.closest('form');
+			const phoneInput = container.querySelector('input[name="phone"]');
+			const productId = container.dataset.productId;
 
 			// Validate phone
 			if (!phoneInput.value || phoneInput.value.trim() === '') {
