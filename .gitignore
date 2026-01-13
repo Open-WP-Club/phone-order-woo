@@ -1,2 +1,27 @@
-
+# macOS
 .DS_Store
+
+# Dependencies
+/node_modules
+/vendor
+
+# Build output
+/build
+
+# IDE
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Composer
+composer.lock
+
+# Package managers
+package-lock.json
+yarn.lock
