@@ -58,9 +58,8 @@ final class Dashboard {
 	 */
 	private function init_hooks(): void {
 		// Use priority 99 to ensure WooCommerce menu is registered first.
-		add_action( 'admin_menu', [ $this, 'add_admin_menu' ], 99 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
-
+		add_action( 'admin_menu', array( $this, 'add_admin_menu' ), 99 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 	}
 
 	/**
@@ -80,7 +79,7 @@ final class Dashboard {
 			__( 'Phone Orders', 'woocommerce-phone-order' ),
 			'manage_options', // Use manage_options for compatibility - WooCommerce admins have this.
 			'wc-phone-orders',
-			[ $this, 'render_dashboard' ]
+			array( $this, 'render_dashboard' )
 		);
 	}
 
@@ -98,14 +97,14 @@ final class Dashboard {
 		wp_enqueue_style(
 			'wc-phone-order-admin',
 			Plugin::get_instance()->get_plugin_url() . 'assets/css/admin.css',
-			[],
+			array(),
 			Plugin::VERSION
 		);
 
 		wp_enqueue_script(
 			'wc-phone-order-admin',
 			Plugin::get_instance()->get_plugin_url() . 'assets/js/admin.js',
-			[ 'jquery', 'wp-api' ],
+			array( 'jquery', 'wp-api' ),
 			Plugin::VERSION,
 			true
 		);
@@ -148,11 +147,11 @@ final class Dashboard {
 
 			<nav class="nav-tab-wrapper wc-phone-order-tabs">
 				<a href="<?php echo esc_url( $base_url ); ?>"
-				   class="nav-tab <?php echo 'dashboard' === $current_tab ? 'nav-tab-active' : ''; ?>">
+					class="nav-tab <?php echo 'dashboard' === $current_tab ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Dashboard', 'woocommerce-phone-order' ); ?>
 				</a>
 				<a href="<?php echo esc_url( add_query_arg( 'tab', 'settings', $base_url ) ); ?>"
-				   class="nav-tab <?php echo 'settings' === $current_tab ? 'nav-tab-active' : ''; ?>">
+					class="nav-tab <?php echo 'settings' === $current_tab ? 'nav-tab-active' : ''; ?>">
 					<?php esc_html_e( 'Settings', 'woocommerce-phone-order' ); ?>
 				</a>
 			</nav>
@@ -221,8 +220,10 @@ final class Dashboard {
 	 */
 	private function render_settings_tab(): void {
 		// Handle form submission.
-		if ( isset( $_POST['wc_phone_order_save_settings'] ) ) {
-			$this->save_settings();
+		if ( isset( $_POST['wc_phone_order_save_settings'] ) && isset( $_POST['wc_phone_order_nonce'] ) ) {
+			if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wc_phone_order_nonce'] ) ), 'wc_phone_order_settings' ) ) {
+				$this->save_settings();
+			}
 		}
 
 		// Get current settings.
@@ -381,7 +382,7 @@ final class Dashboard {
 		}
 
 		// Sanitize and save settings.
-		$settings_to_save = [
+		$settings_to_save = array(
 			'wc_phone_order_display_position'      => isset( $_POST['display_position'] ) ? sanitize_key( wp_unslash( $_POST['display_position'] ) ) : 'after_summary',
 			'wc_phone_order_form_title'            => isset( $_POST['form_title'] ) ? sanitize_text_field( wp_unslash( $_POST['form_title'] ) ) : '',
 			'wc_phone_order_form_subtitle'         => isset( $_POST['form_subtitle'] ) ? sanitize_text_field( wp_unslash( $_POST['form_subtitle'] ) ) : '',
@@ -389,7 +390,7 @@ final class Dashboard {
 			'wc_phone_order_form_button_text'      => isset( $_POST['form_button_text'] ) ? sanitize_text_field( wp_unslash( $_POST['form_button_text'] ) ) : '',
 			'wc_phone_order_out_of_stock_behavior' => isset( $_POST['out_of_stock_behavior'] ) ? sanitize_key( wp_unslash( $_POST['out_of_stock_behavior'] ) ) : 'hide',
 			'wc_phone_order_enable_analytics'      => isset( $_POST['enable_analytics'] ) ? 'yes' : 'no',
-		];
+		);
 
 		foreach ( $settings_to_save as $key => $value ) {
 			update_option( $key, $value );

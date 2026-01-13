@@ -59,69 +59,80 @@ final class AjaxHandler {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'wp_ajax_wc_phone_order_submit', [ $this, 'handle_submit' ] );
-		add_action( 'wp_ajax_nopriv_wc_phone_order_submit', [ $this, 'handle_submit' ] );
+		add_action( 'wp_ajax_wc_phone_order_submit', array( $this, 'handle_submit' ) );
+		add_action( 'wp_ajax_nopriv_wc_phone_order_submit', array( $this, 'handle_submit' ) );
 	}
 
 	/**
-	 * Handle form submission
+	 * Handle form submission.
 	 *
+	 * @throws Exception When order creation fails.
 	 * @return void
 	 */
 	public function handle_submit(): void {
 		try {
-			// Verify nonce
+			// Verify nonce.
 			check_ajax_referer( 'wc-phone-order-nonce', 'nonce' );
 
-			// Get and validate inputs
+			// Get and validate inputs.
 			$phone      = $this->get_phone_from_request();
 			$product_id = $this->get_product_id_from_request();
 
-			// Validate phone
+			// Validate phone.
 			if ( ! $this->validate_phone( $phone ) ) {
-				wp_send_json_error( [
-					'message' => __( 'Please enter a valid phone number', 'woocommerce-phone-order' ),
-				] );
+				wp_send_json_error(
+					array(
+						'message' => __( 'Please enter a valid phone number', 'woocommerce-phone-order' ),
+					)
+				);
 			}
 
-			// Get and validate product
+			// Get and validate product.
 			$product = wc_get_product( $product_id );
 			if ( ! $product instanceof WC_Product ) {
-				wp_send_json_error( [
-					'message' => __( 'Invalid product', 'woocommerce-phone-order' ),
-				] );
+				wp_send_json_error(
+					array(
+						'message' => __( 'Invalid product', 'woocommerce-phone-order' ),
+					)
+				);
 			}
 
 			if ( ! $product->is_purchasable() ) {
-				wp_send_json_error( [
-					'message' => __( 'This product cannot be purchased', 'woocommerce-phone-order' ),
-				] );
+				wp_send_json_error(
+					array(
+						'message' => __( 'This product cannot be purchased', 'woocommerce-phone-order' ),
+					)
+				);
 			}
 
-			// Check stock
+			// Check stock.
 			if ( ! $product->is_in_stock() ) {
-				wp_send_json_error( [
-					'message' => __( 'This product is currently out of stock', 'woocommerce-phone-order' ),
-				] );
+				wp_send_json_error(
+					array(
+						'message' => __( 'This product is currently out of stock', 'woocommerce-phone-order' ),
+					)
+				);
 			}
 
-			// Create or get customer
+			// Create or get customer.
 			$customer_id = $this->get_or_create_customer( $phone );
 
-			// Create order
-			$order = wc_create_order( [
-				'customer_id' => $customer_id,
-				'created_via' => 'phone_order',
-			] );
+			// Create order.
+			$order = wc_create_order(
+				array(
+					'customer_id' => $customer_id,
+					'created_via' => 'phone_order',
+				)
+			);
 
 			if ( ! $order ) {
 				throw new Exception( __( 'Failed to create order', 'woocommerce-phone-order' ) );
 			}
 
-			// Add product to order
+			// Add product to order.
 			$order->add_product( $product, 1 );
 
-			// Set order details
+			// Set order details.
 			$order->set_billing_phone( $phone );
 			$order->set_status( 'processing' );
 			$order->set_payment_method( 'phone_order' );
@@ -129,50 +140,57 @@ final class AjaxHandler {
 			$order->calculate_totals();
 			$order->save();
 
-			// Add order note
+			// Add order note.
 			$order->add_order_note(
 				__( 'Order placed via Phone Order form', 'woocommerce-phone-order' )
 			);
 
-			// Reduce stock
+			// Reduce stock.
 			wc_maybe_reduce_stock_levels( $order->get_id() );
 
-			// Track analytics
+			// Track analytics.
 			$this->track_order_analytics( $order->get_id(), $phone, $product_id );
 
-			// Fire action hook
+			// Fire action hook.
 			do_action( 'wc_phone_order_created', $order->get_id(), $phone, $product_id );
 
-			wp_send_json_success( [
-				'message'  => __( 'Thank you! Your order has been placed. We\'ll contact you shortly to confirm.', 'woocommerce-phone-order' ),
-				'order_id' => $order->get_id(),
-			] );
+			wp_send_json_success(
+				array(
+					'message'  => __( 'Thank you! Your order has been placed. We\'ll contact you shortly to confirm.', 'woocommerce-phone-order' ),
+					'order_id' => $order->get_id(),
+				)
+			);
 
 		} catch ( Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for debugging.
 			error_log( 'Phone Order Error: ' . $e->getMessage() );
-			wp_send_json_error( [
-				'message' => __( 'An error occurred. Please try again or contact us directly.', 'woocommerce-phone-order' ),
-			] );
+			wp_send_json_error(
+				array(
+					'message' => __( 'An error occurred. Please try again or contact us directly.', 'woocommerce-phone-order' ),
+				)
+			);
 		}
 	}
 
 	/**
-	 * Get phone from request
+	 * Get phone from request.
 	 *
 	 * @return string
 	 */
 	private function get_phone_from_request(): string {
-		$phone = $_POST['phone'] ?? '';
-		return sanitize_text_field( wp_unslash( $phone ) );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_submit().
+		$phone = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+		return $phone;
 	}
 
 	/**
-	 * Get product ID from request
+	 * Get product ID from request.
 	 *
 	 * @return int
 	 */
 	private function get_product_id_from_request(): int {
-		return absint( $_POST['product_id'] ?? 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in handle_submit().
+		return isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
 	}
 
 	/**
@@ -191,7 +209,7 @@ final class AjaxHandler {
 			return false;
 		}
 
-		// Allow digits, +, spaces, parentheses, and hyphens
+		// Allow digits, +, spaces, parentheses, and hyphens.
 		return (bool) preg_match( '/^[0-9+\s()-]{5,20}$/', $phone );
 	}
 
@@ -203,14 +221,14 @@ final class AjaxHandler {
 	 * @throws Exception If customer creation fails.
 	 */
 	private function get_or_create_customer( string $phone ): int {
-		// Try to find existing customer
+		// Try to find existing customer.
 		$customer_id = $this->find_customer_by_phone( $phone );
 
 		if ( $customer_id > 0 ) {
 			return $customer_id;
 		}
 
-		// Create new guest customer
+		// Create new guest customer.
 		return $this->create_guest_customer( $phone );
 	}
 
@@ -230,6 +248,7 @@ final class AjaxHandler {
 
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom query with caching above.
 		$user_id = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT user_id FROM {$wpdb->usermeta}
@@ -257,24 +276,24 @@ final class AjaxHandler {
 		$clean_phone = preg_replace( '/[^0-9]/', '', $phone );
 		$timestamp   = time();
 
-		// Generate unique username
+		// Generate unique username.
 		$username = 'guest_' . $clean_phone . '_' . $timestamp;
 
-		// Generate unique email
+		// Generate unique email.
 		$email = $this->generate_unique_email( $clean_phone );
 
-		// Create user
+		// Create user.
 		$user_id = wp_create_user( $username, wp_generate_password( 32 ), $email );
 
 		if ( is_wp_error( $user_id ) ) {
-			throw new Exception( $user_id->get_error_message() );
+			throw new Exception( esc_html( $user_id->get_error_message() ) );
 		}
 
-		// Set role
+		// Set role.
 		$user = new WP_User( $user_id );
 		$user->set_role( 'customer' );
 
-		// Set billing phone
+		// Set billing phone.
 		update_user_meta( $user_id, 'billing_phone', $phone );
 
 		return $user_id;
@@ -293,7 +312,7 @@ final class AjaxHandler {
 			return $base_email;
 		}
 
-		// Add random suffix if email exists
+		// Add random suffix if email exists.
 		do {
 			$random_suffix = wp_generate_password( 6, false );
 			$email         = 'guest_' . $clean_phone . '_' . $random_suffix . '@phone-order.local';
@@ -315,29 +334,30 @@ final class AjaxHandler {
 			return;
 		}
 
-		$analytics = [
-			'order_id'    => $order_id,
-			'phone'       => $phone,
-			'product_id'  => $product_id,
-			'created_at'  => current_time( 'mysql' ),
-			'user_agent'  => $_SERVER['HTTP_USER_AGENT'] ?? '',
-			'ip_address'  => $this->get_client_ip(),
-		];
+		$analytics = array(
+			'order_id'   => $order_id,
+			'phone'      => $phone,
+			'product_id' => $product_id,
+			'created_at' => current_time( 'mysql' ),
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- User agent stored for analytics only.
+			'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '',
+			'ip_address' => $this->get_client_ip(),
+		);
 
-		// Store in custom table or post meta
+		// Store in custom table or post meta.
 		add_post_meta( $order_id, '_phone_order_analytics', $analytics );
 
-		// Fire analytics hook
+		// Fire analytics hook.
 		do_action( 'wc_phone_order_analytics_tracked', $analytics );
 	}
 
 	/**
-	 * Get client IP address
+	 * Get client IP address.
 	 *
 	 * @return string
 	 */
 	private function get_client_ip(): string {
-		$ip_keys = [
+		$ip_keys = array(
 			'HTTP_CLIENT_IP',
 			'HTTP_X_FORWARDED_FOR',
 			'HTTP_X_FORWARDED',
@@ -345,11 +365,14 @@ final class AjaxHandler {
 			'HTTP_FORWARDED_FOR',
 			'HTTP_FORWARDED',
 			'REMOTE_ADDR',
-		];
+		);
 
 		foreach ( $ip_keys as $key ) {
-			if ( isset( $_SERVER[ $key ] ) && filter_var( $_SERVER[ $key ], FILTER_VALIDATE_IP ) ) {
-				return sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
+			if ( isset( $_SERVER[ $key ] ) ) {
+				$ip = sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
+				if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+					return $ip;
+				}
 			}
 		}
 

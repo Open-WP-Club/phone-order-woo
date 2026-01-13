@@ -115,8 +115,8 @@ final class Plugin {
 	 */
 	private function init_hooks(): void {
 		// Since we're already on plugins_loaded, use init hook instead.
-		add_action( 'init', [ $this, 'init_plugin' ], 0 );
-		add_action( 'before_woocommerce_init', [ $this, 'declare_hpos_compatibility' ] );
+		add_action( 'init', array( $this, 'init_plugin' ), 0 );
+		add_action( 'before_woocommerce_init', array( $this, 'declare_hpos_compatibility' ) );
 	}
 
 	/**
@@ -125,22 +125,22 @@ final class Plugin {
 	 * @return void
 	 */
 	public function init_plugin(): void {
-		// Check requirements
+		// Check requirements.
 		if ( ! $this->check_requirements() ) {
 			return;
 		}
 
-		// Load text domain
+		// Load text domain.
 		load_plugin_textdomain(
 			'woocommerce-phone-order',
 			false,
 			dirname( plugin_basename( $this->plugin_file ) ) . '/languages'
 		);
 
-		// Initialize components
+		// Initialize components.
 		$this->init_components();
 
-		// Hook for other plugins
+		// Hook for other plugins.
 		do_action( 'wc_phone_order_loaded' );
 	}
 
@@ -150,15 +150,15 @@ final class Plugin {
 	 * @return bool
 	 */
 	private function check_requirements(): bool {
-		// Check WooCommerce
+		// Check WooCommerce.
 		if ( ! class_exists( 'WooCommerce' ) ) {
-			add_action( 'admin_notices', [ $this, 'woocommerce_missing_notice' ] );
+			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
 			return false;
 		}
 
-		// Check WooCommerce version
+		// Check WooCommerce version.
 		if ( version_compare( WC()->version, self::MIN_WC_VERSION, '<' ) ) {
-			add_action( 'admin_notices', [ $this, 'woocommerce_version_notice' ] );
+			add_action( 'admin_notices', array( $this, 'woocommerce_version_notice' ) );
 			return false;
 		}
 
@@ -171,23 +171,23 @@ final class Plugin {
 	 * @return void
 	 */
 	private function init_components(): void {
-		// Settings
+		// Settings.
 		Settings::get_instance();
 
-		// Frontend components
+		// Frontend components.
 		FormRenderer::get_instance();
 		AjaxHandler::get_instance();
 
-		// Gutenberg block
+		// Gutenberg block.
 		PhoneOrderBlock::get_instance();
 
-		// Admin components
+		// Admin components.
 		if ( is_admin() ) {
 			Dashboard::get_instance();
 			Analytics::get_instance();
 		}
 
-		// Abilities API
+		// Abilities API.
 		AbilitiesAPI::get_instance();
 	}
 
@@ -269,8 +269,9 @@ final class Plugin {
 	private function __clone() {}
 
 	/**
-	 * Prevent unserialization
+	 * Prevent unserialization.
 	 *
+	 * @throws \Exception Always throws to prevent unserialization.
 	 * @return void
 	 */
 	public function __wakeup() {

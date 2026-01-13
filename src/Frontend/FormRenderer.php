@@ -58,9 +58,9 @@ final class FormRenderer {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'init', [ $this, 'setup_display_hooks' ] );
-		add_shortcode( 'woo_phone_order', [ $this, 'shortcode_handler' ] );
-		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_action( 'init', array( $this, 'setup_display_hooks' ) );
+		add_shortcode( 'woo_phone_order', array( $this, 'shortcode_handler' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 	}
 
 	/**
@@ -73,14 +73,14 @@ final class FormRenderer {
 
 		switch ( $display_position ) {
 			case 'after_summary':
-				add_action( 'woocommerce_after_single_product_summary', [ $this, 'display_form' ], 11 );
+				add_action( 'woocommerce_after_single_product_summary', array( $this, 'display_form' ), 11 );
 				break;
 			case 'after_add_to_cart':
-				add_action( 'woocommerce_after_add_to_cart_button', [ $this, 'display_form' ] );
+				add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'display_form' ) );
 				break;
 			case 'disabled':
 			default:
-				// Don't display automatically
+				// Don't display automatically.
 				break;
 		}
 	}
@@ -107,13 +107,17 @@ final class FormRenderer {
 	 * @return string
 	 */
 	public function shortcode_handler( $atts ): string {
-		$atts = shortcode_atts( [
-			'product_id' => 0,
-		], $atts, 'woo_phone_order' );
+		$atts = shortcode_atts(
+			array(
+				'product_id' => 0,
+			),
+			$atts,
+			'woo_phone_order'
+		);
 
 		$product_id = absint( $atts['product_id'] );
 
-		// If no product ID, try global product
+		// If no product ID, try global product.
 		if ( 0 === $product_id ) {
 			global $product;
 			if ( $product instanceof WC_Product ) {
@@ -121,13 +125,15 @@ final class FormRenderer {
 			}
 		}
 
-		// If still no product, get latest
+		// If still no product, get latest.
 		if ( 0 === $product_id ) {
-			$products = wc_get_products( [
-				'limit'   => 1,
-				'orderby' => 'date',
-				'order'   => 'DESC',
-			] );
+			$products = wc_get_products(
+				array(
+					'limit'   => 1,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+				)
+			);
 			if ( ! empty( $products ) ) {
 				$product_id = $products[0]->get_id();
 			}
@@ -150,15 +156,15 @@ final class FormRenderer {
 	public function enqueue_scripts(): void {
 		global $post;
 
-		// Check if we should load scripts
+		// Check if we should load scripts.
 		$should_load = false;
 
-		// Load on product pages
+		// Load on product pages.
 		if ( is_product() ) {
 			$should_load = true;
 		}
 
-		// Load if shortcode is present
+		// Load if shortcode is present.
 		if ( $post instanceof \WP_Post && has_shortcode( $post->post_content, 'woo_phone_order' ) ) {
 			$should_load = true;
 		}
@@ -169,42 +175,46 @@ final class FormRenderer {
 
 		$plugin_url = Plugin::get_instance()->get_plugin_url();
 
-		// Enqueue styles
+		// Enqueue styles.
 		wp_enqueue_style(
 			'wc-phone-order',
 			$plugin_url . 'assets/css/wc-phone-order.css',
-			[],
+			array(),
 			Plugin::VERSION
 		);
 
-		// Enqueue block styles
+		// Enqueue block styles.
 		wp_enqueue_style(
 			'wc-phone-order-block',
 			$plugin_url . 'build/phone-order-block/style-index.css',
-			[],
+			array(),
 			Plugin::VERSION
 		);
 
-		// Enqueue simple vanilla JS script (no Interactivity API)
+		// Enqueue simple vanilla JS script (no Interactivity API).
 		wp_enqueue_script(
 			'wc-phone-order-frontend',
 			$plugin_url . 'assets/js/phone-order-frontend.js',
-			[],
+			array(),
 			Plugin::VERSION,
 			true
 		);
 
-		// Localize script with params
-		wp_localize_script( 'wc-phone-order-frontend', 'wooPhoneOrderParams', [
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'wc-phone-order-nonce' ),
-			'i18n'    => [
-				'submitting' => __( 'Submitting...', 'woocommerce-phone-order' ),
-				'success'    => __( 'Order placed successfully!', 'woocommerce-phone-order' ),
-				'error'      => __( 'An error occurred', 'woocommerce-phone-order' ),
-				'emptyPhone' => __( 'Please enter your phone number', 'woocommerce-phone-order' ),
-			],
-		] );
+		// Localize script with params.
+		wp_localize_script(
+			'wc-phone-order-frontend',
+			'wooPhoneOrderParams',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'wc-phone-order-nonce' ),
+				'i18n'    => array(
+					'submitting' => __( 'Submitting...', 'woocommerce-phone-order' ),
+					'success'    => __( 'Order placed successfully!', 'woocommerce-phone-order' ),
+					'error'      => __( 'An error occurred', 'woocommerce-phone-order' ),
+					'emptyPhone' => __( 'Please enter your phone number', 'woocommerce-phone-order' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -220,16 +230,16 @@ final class FormRenderer {
 			return;
 		}
 
-		// Get settings
-		$form_title             = $this->settings->get( 'form_title', '' );
-		$form_subtitle          = $this->settings->get( 'form_subtitle', '' );
-		$form_description       = $this->settings->get( 'form_description', '' );
-		$button_text            = $this->settings->get( 'form_button_text', __( 'Order Now', 'woocommerce-phone-order' ) );
-		$out_of_stock_behavior  = $this->settings->get( 'out_of_stock_behavior', 'hide' );
+		// Get settings.
+		$form_title            = $this->settings->get( 'form_title', '' );
+		$form_subtitle         = $this->settings->get( 'form_subtitle', '' );
+		$form_description      = $this->settings->get( 'form_description', '' );
+		$button_text           = $this->settings->get( 'form_button_text', __( 'Order Now', 'woocommerce-phone-order' ) );
+		$out_of_stock_behavior = $this->settings->get( 'out_of_stock_behavior', 'hide' );
 
 		$is_in_stock = $product->is_in_stock();
 
-		// Handle out of stock behavior
+		// Handle out of stock behavior.
 		if ( ! $is_in_stock && 'hide' === $out_of_stock_behavior ) {
 			return;
 		}
@@ -242,7 +252,7 @@ final class FormRenderer {
 			$form_disabled = true;
 		}
 
-		// Render form template
+		// Render form template.
 		include Plugin::get_instance()->get_plugin_path() . 'templates/phone-order-form.php';
 	}
 }

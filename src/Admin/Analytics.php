@@ -53,8 +53,8 @@ final class Analytics {
 	 * Constructor
 	 */
 	private function __construct() {
-		add_action( 'woocommerce_order_status_changed', [ $this, 'clear_cache' ] );
-		add_action( 'wc_phone_order_created', [ $this, 'clear_cache' ] );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'clear_cache' ) );
+		add_action( 'wc_phone_order_created', array( $this, 'clear_cache' ) );
 	}
 
 	/**
@@ -87,14 +87,14 @@ final class Analytics {
 			return $cached;
 		}
 
-		$stats = [
-			'total_orders'   => $this->get_total_orders(),
-			'today_orders'   => $this->get_today_orders(),
-			'month_orders'   => $this->get_month_orders(),
-			'total_revenue'  => $this->get_total_revenue(),
-			'recent_orders'  => $this->get_recent_orders(),
-			'top_products'   => $this->get_top_products(),
-		];
+		$stats = array(
+			'total_orders'  => $this->get_total_orders(),
+			'today_orders'  => $this->get_today_orders(),
+			'month_orders'  => $this->get_month_orders(),
+			'total_revenue' => $this->get_total_revenue(),
+			'recent_orders' => $this->get_recent_orders(),
+			'top_products'  => $this->get_top_products(),
+		);
 
 		wp_cache_set( 'dashboard_stats', $stats, self::CACHE_GROUP, self::CACHE_EXPIRATION );
 
@@ -107,11 +107,13 @@ final class Analytics {
 	 * @return int
 	 */
 	private function get_total_orders(): int {
-		$result = wc_get_orders( [
-			'created_via' => 'phone_order',
-			'paginate'    => true,
-			'limit'       => 1,
-		] );
+		$result = wc_get_orders(
+			array(
+				'created_via' => 'phone_order',
+				'paginate'    => true,
+				'limit'       => 1,
+			)
+		);
 
 		return $result->total;
 	}
@@ -122,12 +124,14 @@ final class Analytics {
 	 * @return int
 	 */
 	private function get_today_orders(): int {
-		$result = wc_get_orders( [
-			'created_via'  => 'phone_order',
-			'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'today' ) ),
-			'paginate'     => true,
-			'limit'        => 1,
-		] );
+		$result = wc_get_orders(
+			array(
+				'created_via'  => 'phone_order',
+				'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'today' ) ),
+				'paginate'     => true,
+				'limit'        => 1,
+			)
+		);
 
 		return $result->total;
 	}
@@ -138,12 +142,14 @@ final class Analytics {
 	 * @return int
 	 */
 	private function get_month_orders(): int {
-		$result = wc_get_orders( [
-			'created_via'  => 'phone_order',
-			'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'first day of this month' ) ),
-			'paginate'     => true,
-			'limit'        => 1,
-		] );
+		$result = wc_get_orders(
+			array(
+				'created_via'  => 'phone_order',
+				'date_created' => '>=' . gmdate( 'Y-m-d', strtotime( 'first day of this month' ) ),
+				'paginate'     => true,
+				'limit'        => 1,
+			)
+		);
 
 		return $result->total;
 	}
@@ -154,12 +160,14 @@ final class Analytics {
 	 * @return float
 	 */
 	private function get_total_revenue(): float {
-		$orders = wc_get_orders( [
-			'created_via' => 'phone_order',
-			'status'      => [ 'wc-completed', 'wc-processing' ],
-			'limit'       => -1,
-			'return'      => 'objects',
-		] );
+		$orders = wc_get_orders(
+			array(
+				'created_via' => 'phone_order',
+				'status'      => array( 'wc-completed', 'wc-processing' ),
+				'limit'       => -1,
+				'return'      => 'objects',
+			)
+		);
 
 		$total = 0.0;
 		foreach ( $orders as $order ) {
@@ -176,12 +184,14 @@ final class Analytics {
 	 * @return array<int, \WC_Order>
 	 */
 	public function get_recent_orders( int $limit = 10 ): array {
-		return wc_get_orders( [
-			'created_via' => 'phone_order',
-			'limit'       => $limit,
-			'orderby'     => 'date',
-			'order'       => 'DESC',
-		] );
+		return wc_get_orders(
+			array(
+				'created_via' => 'phone_order',
+				'limit'       => $limit,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+			)
+		);
 	}
 
 	/**
@@ -191,36 +201,41 @@ final class Analytics {
 	 * @return array<int, array{product_id: int, order_count: int, revenue: float}>
 	 */
 	public function get_top_products( int $limit = 5 ): array {
-		$orders = wc_get_orders( [
-			'created_via' => 'phone_order',
-			'status'      => [ 'wc-completed', 'wc-processing' ],
-			'limit'       => -1,
-			'return'      => 'objects',
-		] );
+		$orders = wc_get_orders(
+			array(
+				'created_via' => 'phone_order',
+				'status'      => array( 'wc-completed', 'wc-processing' ),
+				'limit'       => -1,
+				'return'      => 'objects',
+			)
+		);
 
-		$product_stats = [];
+		$product_stats = array();
 
 		foreach ( $orders as $order ) {
 			foreach ( $order->get_items() as $item ) {
 				$product_id = $item->get_product_id();
 
 				if ( ! isset( $product_stats[ $product_id ] ) ) {
-					$product_stats[ $product_id ] = [
+					$product_stats[ $product_id ] = array(
 						'product_id'  => $product_id,
 						'order_count' => 0,
 						'revenue'     => 0.0,
-					];
+					);
 				}
 
-				$product_stats[ $product_id ]['order_count']++;
+				++$product_stats[ $product_id ]['order_count'];
 				$product_stats[ $product_id ]['revenue'] += (float) $item->get_total();
 			}
 		}
 
-		// Sort by order count descending
-		usort( $product_stats, function ( $a, $b ) {
-			return $b['order_count'] <=> $a['order_count'];
-		} );
+		// Sort by order count descending.
+		usort(
+			$product_stats,
+			function ( $a, $b ) {
+				return $b['order_count'] <=> $a['order_count'];
+			}
+		);
 
 		return array_slice( $product_stats, 0, $limit );
 	}
@@ -233,12 +248,14 @@ final class Analytics {
 	 * @return array<int, \WC_Order>
 	 */
 	public function get_orders_by_date_range( string $start_date, string $end_date ): array {
-		return wc_get_orders( [
-			'limit'        => -1,
-			'created_via'  => 'phone_order',
-			'date_created' => $start_date . '...' . $end_date,
-			'return'       => 'objects',
-		] );
+		return wc_get_orders(
+			array(
+				'limit'        => -1,
+				'created_via'  => 'phone_order',
+				'date_created' => $start_date . '...' . $end_date,
+				'return'       => 'objects',
+			)
+		);
 	}
 
 	/**
@@ -249,10 +266,12 @@ final class Analytics {
 	public function get_conversion_rate(): float {
 		$phone_orders = $this->get_total_orders();
 
-		$result = wc_get_orders( [
-			'paginate' => true,
-			'limit'    => 1,
-		] );
+		$result = wc_get_orders(
+			array(
+				'paginate' => true,
+				'limit'    => 1,
+			)
+		);
 
 		$total = $result->total;
 
@@ -294,29 +313,32 @@ final class Analytics {
 		$filename   = 'phone-orders-' . $start_date . '-to-' . $end_date . '.csv';
 		$filepath   = $upload_dir['basedir'] . '/wc-phone-orders/' . $filename;
 
-		// Create directory if it doesn't exist
+		// Create directory if it doesn't exist.
 		wp_mkdir_p( dirname( $filepath ) );
 
-		$fp = fopen( $filepath, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
+		$fp = fopen( $filepath, 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Writing CSV requires direct file handling.
 
 		if ( false === $fp ) {
 			return '';
 		}
 
-		// CSV Headers
-		fputcsv( $fp, [
-			'Order ID',
-			'Date',
-			'Phone',
-			'Product',
-			'Total',
-			'Status',
-		] );
+		// CSV Headers.
+		fputcsv(
+			$fp,
+			array(
+				'Order ID',
+				'Date',
+				'Phone',
+				'Product',
+				'Total',
+				'Status',
+			)
+		);
 
-		// CSV Data
+		// CSV Data.
 		foreach ( $orders as $order ) {
 			$items         = $order->get_items();
-			$product_names = [];
+			$product_names = array();
 
 			foreach ( $items as $item ) {
 				$product_names[] = $item->get_name();
@@ -324,17 +346,20 @@ final class Analytics {
 
 			$date_created = $order->get_date_created();
 
-			fputcsv( $fp, [
-				$order->get_id(),
-				$date_created ? $date_created->date( 'Y-m-d H:i:s' ) : '',
-				$order->get_billing_phone(),
-				implode( ', ', $product_names ),
-				$order->get_total(),
-				$order->get_status(),
-			] );
+			fputcsv(
+				$fp,
+				array(
+					$order->get_id(),
+					$date_created ? $date_created->date( 'Y-m-d H:i:s' ) : '',
+					$order->get_billing_phone(),
+					implode( ', ', $product_names ),
+					$order->get_total(),
+					$order->get_status(),
+				)
+			);
 		}
 
-		fclose( $fp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+		fclose( $fp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing file handle opened above.
 
 		return $filepath;
 	}

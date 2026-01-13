@@ -1,0 +1,23 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - src/
+
+    bootstrapFiles:
+        - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Ignore unused method warning for HPOS check (used for future compatibility)
+        - '#Method OpenWPClub\\PhoneOrder\\Admin\\Analytics::is_hpos_enabled\(\) is unused#'
+        # Ignore unused property (settings object stored for potential future use)
+        - '#Property OpenWPClub\\PhoneOrder\\Admin\\Dashboard::\$settings is never read#'
+        # WC_Order_Item methods exist on WC_Order_Item_Product subclass at runtime
+        - '#Call to an undefined method WC_Order_Item::get_product_id\(\)#'
+        - '#Call to an undefined method WC_Order_Item::get_total\(\)#'
+        # Unused constant may be used in templates or future code
+        - '#Constant OpenWPClub\\PhoneOrder\\Blocks\\PhoneOrderBlock::BLOCK_NAME is unused#'

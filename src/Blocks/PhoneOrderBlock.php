@@ -56,7 +56,7 @@ final class PhoneOrderBlock {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'init', [ $this, 'register_block' ] );
+		add_action( 'init', array( $this, 'register_block' ) );
 	}
 
 	/**
@@ -65,62 +65,62 @@ final class PhoneOrderBlock {
 	 * @return void
 	 */
 	public function register_block(): void {
-		// Register block from metadata
+		// Register block from metadata.
 		register_block_type(
 			Plugin::get_instance()->get_plugin_path() . 'build/phone-order-block',
-			[
-				'render_callback' => [ $this, 'render_block' ],
-				'attributes'      => [
-					'productId' => [
+			array(
+				'render_callback' => array( $this, 'render_block' ),
+				'attributes'      => array(
+					'productId'        => array(
 						'type'    => 'number',
 						'default' => 0,
-					],
-					'showTitle' => [
+					),
+					'showTitle'        => array(
 						'type'    => 'boolean',
 						'default' => true,
-					],
-					'showDescription' => [
+					),
+					'showDescription'  => array(
 						'type'    => 'boolean',
 						'default' => true,
-					],
-					'customTitle' => [
+					),
+					'customTitle'      => array(
 						'type'    => 'string',
 						'default' => '',
-					],
-					'customButtonText' => [
+					),
+					'customButtonText' => array(
 						'type'    => 'string',
 						'default' => '',
-					],
-					'align' => [
+					),
+					'align'            => array(
 						'type' => 'string',
-					],
-					'backgroundColor' => [
+					),
+					'backgroundColor'  => array(
 						'type' => 'string',
-					],
-					'textColor' => [
+					),
+					'textColor'        => array(
 						'type' => 'string',
-					],
-					'className' => [
+					),
+					'className'        => array(
 						'type' => 'string',
-					],
-				],
-				'supports'        => [
-					'align'             => true,
-					'color'             => [
+					),
+				),
+				'supports'        => array(
+					'align'         => true,
+					'color'         => array(
 						'background' => true,
 						'text'       => true,
-					],
-					'spacing'           => [
-						'padding'  => true,
-						'margin'   => true,
-					],
-					'typography'        => [
+					),
+					'spacing'       => array(
+						'padding' => true,
+						'margin'  => true,
+					),
+					'typography'    => array(
 						'fontSize'   => true,
 						'lineHeight' => true,
-					],
-					'interactivity'     => true, // WordPress 6.5+ Interactivity API
-				],
-			]
+					),
+					'interactivity' => true, // WordPress 6.5+ Interactivity API.
+				),
+			)
 		);
 	}
 
@@ -131,10 +131,10 @@ final class PhoneOrderBlock {
 	 * @param string               $content Block content.
 	 * @return string
 	 */
-	public function render_block( array $attributes, string $content ): string {
+	public function render_block( array $attributes, string $content ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Required by WordPress block API.
 		$product_id = absint( $attributes['productId'] ?? 0 );
 
-		// If no product ID, try to get from current context
+		// If no product ID, try to get from current context.
 		if ( 0 === $product_id ) {
 			global $product;
 			if ( $product instanceof \WC_Product ) {
@@ -142,13 +142,15 @@ final class PhoneOrderBlock {
 			}
 		}
 
-		// If still no product, get latest
+		// If still no product, get latest.
 		if ( 0 === $product_id ) {
-			$products = wc_get_products( [
-				'limit'   => 1,
-				'orderby' => 'date',
-				'order'   => 'DESC',
-			] );
+			$products = wc_get_products(
+				array(
+					'limit'   => 1,
+					'orderby' => 'date',
+					'order'   => 'DESC',
+				)
+			);
 			if ( ! empty( $products ) ) {
 				$product_id = $products[0]->get_id();
 			}
@@ -158,14 +160,14 @@ final class PhoneOrderBlock {
 			return '<p>' . esc_html__( 'Please select a product for the phone order form.', 'woocommerce-phone-order' ) . '</p>';
 		}
 
-		// Get product
+		// Get product.
 		$product = wc_get_product( $product_id );
 		if ( ! $product || ! $product->is_purchasable() ) {
 			return '<p>' . esc_html__( 'Selected product is not available.', 'woocommerce-phone-order' ) . '</p>';
 		}
 
-		// Build wrapper classes
-		$wrapper_classes = [ 'wp-block-openwpclub-phone-order' ];
+		// Build wrapper classes.
+		$wrapper_classes = array( 'wp-block-openwpclub-phone-order' );
 		if ( ! empty( $attributes['className'] ) ) {
 			$wrapper_classes[] = $attributes['className'];
 		}
@@ -173,8 +175,8 @@ final class PhoneOrderBlock {
 			$wrapper_classes[] = 'align' . $attributes['align'];
 		}
 
-		// Build wrapper styles
-		$wrapper_styles = [];
+		// Build wrapper styles.
+		$wrapper_styles = array();
 		if ( ! empty( $attributes['backgroundColor'] ) ) {
 			$wrapper_styles[] = 'background-color: ' . esc_attr( $attributes['backgroundColor'] );
 		}
@@ -182,7 +184,7 @@ final class PhoneOrderBlock {
 			$wrapper_styles[] = 'color: ' . esc_attr( $attributes['textColor'] );
 		}
 
-		// Start output buffering
+		// Start output buffering.
 		ob_start();
 
 		printf(
@@ -191,10 +193,12 @@ final class PhoneOrderBlock {
 			esc_attr( implode( '; ', $wrapper_styles ) )
 		);
 
-		// Render form using FormRenderer
-		FormRenderer::get_instance()->shortcode_handler( [
-			'product_id' => $product_id,
-		] );
+		// Render form using FormRenderer.
+		FormRenderer::get_instance()->shortcode_handler(
+			array(
+				'product_id' => $product_id,
+			)
+		);
 
 		echo '</div>';
 
