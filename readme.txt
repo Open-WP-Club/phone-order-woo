@@ -1,27 +1,30 @@
 === Phone Order for WooCommerce ===
 Contributors: openwpclub
-Tags: woocommerce, phone order, quick order, one-click order, simple checkout
-Requires at least: 6.0
-Tested up to: 6.8
-Requires PHP: 7.4
-Stable tag: 1.1.0
+Tags: woocommerce, phone order, quick order, one-click order, simple checkout, gutenberg block
+Requires at least: 6.9
+Tested up to: 6.9
+Requires PHP: 8.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Quick order creation with just a phone number for WooCommerce stores.
+Modern phone-based order creation with Gutenberg blocks and Interactivity API for WooCommerce stores.
 
 == Description ==
 
-Phone Order for WooCommerce allows customers to place quick orders using just their phone number. Perfect for businesses looking to streamline their ordering process and reduce friction in the customer journey.
+Phone Order for WooCommerce is a modern WordPress 6.9+ plugin that allows customers to place quick orders using just their phone number. Built with the latest WordPress technologies including Gutenberg blocks and the Interactivity API for an enhanced user experience.
 
 = Features =
 
+* **Gutenberg Block** - Native block editor support with live preview
+* **Interactivity API** - Modern, reactive user interface
+* **Analytics Dashboard** - Track phone orders and conversion rates
+* **Admin Dashboard** - Dedicated dashboard for phone order management
 * Easy order placement with just a phone number
 * Customizable form placement on product pages
-* Shortcode support for flexible form placement
+* Shortcode support: `[woo_phone_order]` and `[woo_phone_order product_id="123"]`
 * Configurable text for form title, subtitle, and description
 * Out-of-stock product handling options
-* AJAX-powered form submission for a smooth user experience
 * Processing order status for easy order management
 * Responsive design that works on all devices
 * HPOS (High Performance Order Storage) compatible
@@ -75,6 +78,17 @@ Yes! The plugin is fully compatible with WooCommerce's High Performance Order St
 
 == Changelog ==
 
+= 2.0.0 =
+* **NEW:** Gutenberg block for phone order form
+* **NEW:** WordPress Interactivity API integration for reactive UI
+* **NEW:** Analytics dashboard for tracking phone orders
+* **NEW:** Admin dashboard for phone order management
+* **NEW:** Abilities API for extended functionality
+* **IMPROVED:** Modern codebase with PHP 8.0+ features
+* **IMPROVED:** Block-based architecture
+* **UPDATED:** Minimum requirements - WordPress 6.9+, PHP 8.0+, WooCommerce 9.0+
+* Full backwards compatibility with shortcodes and legacy features
+
 = 1.1.0 =
 * Added HPOS (High Performance Order Storage) compatibility
 * Added full settings page with customization options
@@ -93,6 +107,9 @@ Yes! The plugin is fully compatible with WooCommerce's High Performance Order St
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Major modernization update with Gutenberg blocks, Interactivity API, and analytics dashboard. Requires WordPress 6.9+, PHP 8.0+, and WooCommerce 9.0+.
 
 = 1.1.0 =
 Major update with HPOS compatibility, settings page, and customer management features.
